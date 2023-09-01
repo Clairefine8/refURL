@@ -7,7 +7,7 @@ import requests
 from io import BytesIO
 st.title("OCCU")
 st.subheader("The all-in-one patient referral system for doctors.")
-
+st.text("Please fill out the side bar to search for doctors")
 loc = st.sidebar.text_input('Enter patient address')
 geolocator = Nominatim(user_agent="myApp")
 geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
