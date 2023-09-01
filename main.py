@@ -99,7 +99,7 @@ if (type(loc) == str) & (bool(wait)==True) & (type(specialty)==str):
 
 
 import openai
-openai.api_key = st.text_input("Enter API key for open AI if you would like to create an automated referral from your visit note")
+openai.api_key = st.text_input("Enter your unique open AI API key if you would like to create an automated referral from your visit note")
 
 def chat_with_chatgpt(prompt, specialty, model="text-davinci-003"):
     response = openai.Completion.create(
