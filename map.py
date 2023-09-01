@@ -88,8 +88,9 @@ map = display_map(data,gender,pt_coord,distance, specialty,min_wait,max_wait)
 map
 
 
+
 import openai
-openai.api_key = "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"
+openai.api_key = st.text_input("Enter API key for open AI if you would like to create an automated referral")
 
 def chat_with_chatgpt(prompt, specialty, model="text-davinci-003"):
     response = openai.Completion.create(
@@ -104,7 +105,8 @@ def chat_with_chatgpt(prompt, specialty, model="text-davinci-003"):
     message = response.choices[0].text.strip()
     return message
 
-st.text_area(label="Referral",value=chat_with_chatgpt(note,specialty),height=400)
+if len(openai.api_key)>1: 
+    st.text_area(label="Referral",value=chat_with_chatgpt(note,specialty),height=400)
 
 
 
