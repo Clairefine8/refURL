@@ -3,15 +3,17 @@ import streamlit as st
 import pandas as pd
 from geopy.extra.rate_limiter import RateLimiter
 from geopy.geocoders import Nominatim
+import requests 
+from io import BytesIO
 st.title("OCCU")
 st.subheader("The all-in-one patient referral system for doctors.")
 
 loc = st.sidebar.text_input('Enter patient address')
 geolocator = Nominatim(user_agent="myApp")
 geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
-ptloc = geolocator.geocode(loc,timeout=10)
-pt_coord = (ptloc.latitude, ptloc.longitude) 
-specialtylist = pd.read_excel(io='/Users/claire/Desktop/work/Specialties.xlsx')
+url_specialties = "https://github.com/Clairefine8/refURL/raw/main/Specialties.xlsx"
+my_specialties = requests.get(url_specialties).content
+specialtylist = pd.read_excel(my_specialties)
 specialty= st.sidebar.selectbox('Specialty',options=specialtylist)
 
 def display_gender_filter():
@@ -27,11 +29,12 @@ option_3 = st.sidebar.checkbox('2-4 weeks')
 option_4 = st.sidebar.checkbox('4-8 weeks')
 option_5 = st.sidebar.checkbox('8+ weeeks')
 
-map = folium.Map(location=[43.706, -79.3670], tiles="OpenStreetMap")
 
 def display_map (df,gender,address,radius,specialty,min,max):
-    map = folium.Map(location=pt_coord, tiles="OpenStreetMap")
-
+    # for now we will default the map to zoom to Toronto
+    # when we have more cities, change the code to: 
+         # map = folium.Map(location=pt_coord, tiles="OpenStreetMap")
+    map = folium.Map(location=(43.706, -79.367), tiles="OpenStreetMap")
     from geopy.extra.rate_limiter import RateLimiter
     from geopy.geocoders import Nominatim
 
@@ -55,8 +58,7 @@ def display_map (df,gender,address,radius,specialty,min,max):
     return map
 
 
-#load data
-data=pd.read_excel(io='/Users/claire/Desktop/work/doctors.xlsx')
+
  #display filters and map
 wait = []
 if option_1 ==1: 
@@ -64,15 +66,16 @@ if option_1 ==1:
 if option_2 == 1:
     wait = wait + [1,2]
 if option_3 == 1:
-    wait = [2,4]
+    wait = wait + [2,4]
 if option_4 == 1:
-    wait = [4,8]
+    wait = wait +  [4,8]
 if option_5 ==1:
-    wait = [8,1000]
+    wait =  wait + [8,1000]
 
 unique_wait = set(wait)
-min_wait = min(unique_wait)
-max_wait = max(unique_wait)
+if wait:
+    min_wait = min(unique_wait)
+    max_wait = max(unique_wait)
 
 gender = display_gender_filter()
 distance = display_distance_filter()
@@ -83,14 +86,20 @@ def within_radius (lat,long,y):
         return GD(x,y).km 
 
 note=st.sidebar.text_area("Paste visit note")
-map = display_map(data,gender,pt_coord,distance, specialty,min_wait,max_wait)
-
-map
+#load data
+url_doctors = "https://github.com/Clairefine8/refURL/raw/main/doctors.xlsx"
+my_doctors = requests.get(url_doctors).content
+data = pd.read_excel(my_doctors)
+if (type(loc) == str) & (bool(wait)==True) & (type(specialty)==str):  
+    ptloc = geolocator.geocode(loc,timeout=10)
+    pt_coord = (ptloc.latitude, ptloc.longitude)  
+    map = display_map(data,gender,pt_coord,distance, specialty,min_wait,max_wait)
+    map
 
 
 
 import openai
-openai.api_key = st.text_input("Enter API key for open AI if you would like to create an automated referral")
+openai.api_key = st.text_input("Enter API key for open AI if you would like to create an automated referral from your visit note")
 
 def chat_with_chatgpt(prompt, specialty, model="text-davinci-003"):
     response = openai.Completion.create(
