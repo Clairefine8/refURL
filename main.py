@@ -106,7 +106,7 @@ def chat_with_chatgpt(prompt, specialty, model="text-davinci-003"):
         engine=model,
         prompt = "Write a doctor's referral to the specialty of" + specialty + 
         "based off the following information: " + prompt + ". Do this in a concise format that starts with Dear Dr. and a line indent",
-        max_tokens=100,
+        max_tokens=1000,
         n=1,
         stop=None,
         temperature=0.5,
